@@ -29,6 +29,17 @@ if __name__ == "__main__":
 def index():
     return 'Hi from index!'
 
-@app.route('/api')
-def get_api():
-    return {"key": "value"}
+@app.route('/items')
+def get_items():
+    values = Data.query.all()
+
+    output = []
+    for row in values:
+        row_data = {'id': row.id,'key': row.key, 'value': row.value}
+        output.append(row_data)
+    return {"Data": output}
+
+@app.route('/items/<id>')
+def get_item(id):
+    row = Data.query.get_or_404(id)
+    return {"id": row.id, "key": row.key, "value": row.value}
