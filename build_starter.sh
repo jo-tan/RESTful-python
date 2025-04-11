@@ -8,7 +8,7 @@ in_venv() {
 # 2. Start venv if not activate
 if ! in_venv; then
     if [ -f ".venv/bin/activate" ]; then
-        echo "🤖 Activatin python virtual environment ..."
+        echo "🤖 Activating python virtual environment ..."
         source .venv/bin/activate
     else
         echo "❌ Virtual environment not found... Have you create it? 🫥"
@@ -31,6 +31,6 @@ if [ -z "$FLASK_ENV" ]; then
 fi
 
 # 4. start Flask
-echo "✅ Staring Flask app with debug mode ... "
+echo "✅ Starting Flask app with debug mode ... "
 flask run --debug
 
