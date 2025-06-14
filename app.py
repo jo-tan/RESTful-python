@@ -1,45 +1,51 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+import logging
+from logging.handlers import RotatingFileHandler
 import os
-app = Flask(__name__)
-db_name = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data.db')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_name
+from dotenv import load_dotenv
 
-db = SQLAlchemy(app)
+from models.recipes import db
+from routes.recipe_routes import recipe_bp
 
-class Data(db.Model):
-    __tablename__ = 'data'
-    id = db.Column(db.Integer, primary_key=True)
-    key = db.Column(db.String(20), unique=True, nullable=False)
-    value = db.Column(db.String(100))
+load_dotenv(dotenv_path="instance/.env")
+migrate = Migrate()
 
-    def __repr__(self):
-        return f"{self.key} - {self.value}"
+def setup_logging(app):
+    if not os.path.exists('logs'):
+        os.makedirs('logs')
 
-#initiate the db(run once)
-with app.app_context():
-    print("Creating tables...")
-    db.create_all()
-    print("Tables created!")
+    if app.logger.handlers:
+        return
+
+    file_handler = RotatingFileHandler('logs/app.log', maxBytes=10240, backupCount=3)
+    file_handler.setLevel(logging.INFO)
+
+    formatter = logging.Formatter(
+        '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
+    )
+    file_handler.setFormatter(formatter)
+
+    app.logger.addHandler(file_handler)
+    app.logger.setLevel(logging.INFO)
+    app.logger.info('📋 Flask app started and logging is initialized.')
+
+def create_app():
+    app = Flask(__name__)
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///instance/recipes.db')
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    db.init_app(app)
+    migrate.init_app(app, db)
+    app.register_blueprint(recipe_bp, url_prefix='/api/recipes')
+
+    setup_logging(app)
+
+    return app
+
+app = create_app()
 
 if __name__ == "__main__":
     app.run(debug=True)
 
-@app.route('/')
-def index():
-    return 'Hi from index!'
 
-@app.route('/items')
-def get_items():
-    values = Data.query.all()
-
-    output = []
-    for row in values:
-        row_data = {'id': row.id,'key': row.key, 'value': row.value}
-        output.append(row_data)
-    return {"Data": output}
-
-@app.route('/items/<id>')
-def get_item(id):
-    row = Data.query.get_or_404(id)
-    return {"id": row.id, "key": row.key, "value": row.value}
