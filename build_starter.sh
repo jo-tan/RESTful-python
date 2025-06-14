@@ -22,10 +22,10 @@ fi
 
 # 3. Check and set environment variables if not set
 if [ -f "instance/.env" ]; then
-    echo "📄 Loading environment variables from .env ..."
-    export $(grep -v '^#' .env | xargs)
+    echo "📄 Loading environment variables from instance/.env ..."
+    export $(grep -v '^#' instance/.env | xargs)
 else
-    echo "⚠️  No .env file found. Using default or exported env vars."
+    echo "⚠️  No .env file found in /instance. Using default or exported env vars."
 fi
 
 
@@ -35,7 +35,7 @@ pip install --quiet --upgrade pip setuptools wheel
 
 if [ -f "requirements.txt" ]; then
     echo "🔍 Installing/updating packages from requirements.txt..."
-    pip install -r requirements.txt
+    pip install -r requirements.txt -qq
 else
     echo "⚠️  requirements.txt not found. Skipping package installation."
 fi

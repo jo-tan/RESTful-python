@@ -16,9 +16,6 @@ def setup_logging(app):
     if not os.path.exists('logs'):
         os.makedirs('logs')
 
-    if app.logger.handlers:
-        return
-
     file_handler = RotatingFileHandler('logs/app.log', maxBytes=10240, backupCount=3)
     file_handler.setLevel(logging.INFO)
 
